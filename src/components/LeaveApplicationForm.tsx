@@ -5,14 +5,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, CalendarDays } from 'lucide-react';
+import { Calendar, CalendarDays, AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LeaveRequest } from './EmployeeDashboard';
 
 interface LeaveApplicationFormProps {
   onSubmit: (leaveData: Omit<LeaveRequest, 'id' | 'status' | 'appliedDate'>) => void;
+  leaveBalance: Record<string, number>;
+  existingLeaves: LeaveRequest[];
 }
 
-const LeaveApplicationForm = ({ onSubmit }: LeaveApplicationFormProps) => {
+const LeaveApplicationForm = ({ onSubmit, leaveBalance, existingLeaves }: LeaveApplicationFormProps) => {
   const [formData, setFormData] = useState({
     fromDate: '',
     toDate: '',
@@ -23,12 +26,14 @@ const LeaveApplicationForm = ({ onSubmit }: LeaveApplicationFormProps) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const leaveTypes = [
-    'Annual Leave',
-    'Sick Leave',
-    'Casual Leave',
-    'Maternity Leave',
-    'Paternity Leave',
-    'Emergency Leave'
+    { code: 'CL', name: 'Casual Leave', limit: 10, notes: 'Cannot be combined with other leave types' },
+    { code: 'EL', name: 'Earned Leave', limit: 30, notes: 'Can be combined with other leaves' },
+    { code: 'HPL', name: 'Half Pay Leave', limit: 20, notes: 'Deducted at half pay' },
+    { code: 'SCL', name: 'Special Casual Leave', limit: 3, notes: 'For special purposes like exams or events' },
+    { code: 'PL', name: 'Paternity Leave', limit: 15, notes: 'For male employees during childbirth' },
+    { code: 'ML', name: 'Maternity Leave', limit: 180, notes: 'For female employees, per child' },
+    { code: 'IL', name: 'Injury Leave', limit: 999, notes: 'As per rules - verification by medical board required' },
+    { code: 'CCL', name: 'Child Care Leave', limit: 730, notes: 'Only for female employees, cumulative throughout service' }
   ];
 
   const validateForm = () => {
@@ -51,6 +56,28 @@ const LeaveApplicationForm = ({ onSubmit }: LeaveApplicationFormProps) => {
 
       if (toDate < fromDate) {
         newErrors.toDate = 'To date must be after from date';
+      }
+
+      // Check leave balance
+      const requestedDays = calculateDays();
+      const availableBalance = leaveBalance[formData.leaveType] || 0;
+      
+      if (requestedDays > availableBalance) {
+        newErrors.general = `Insufficient leave balance. Available: ${availableBalance} days, Requested: ${requestedDays} days`;
+      }
+
+      // Check Casual Leave combination rule
+      if (formData.leaveType === 'CL') {
+        const overlappingLeaves = existingLeaves.filter(leave => {
+          if (leave.status === 'rejected') return false;
+          const leaveFrom = new Date(leave.fromDate);
+          const leaveTo = new Date(leave.toDate);
+          return (fromDate <= leaveTo && toDate >= leaveFrom);
+        });
+
+        if (overlappingLeaves.length > 0) {
+          newErrors.general = 'Casual Leave cannot be combined with other leave types during the same period';
+        }
       }
     }
 
@@ -90,8 +117,18 @@ const LeaveApplicationForm = ({ onSubmit }: LeaveApplicationFormProps) => {
     return 0;
   };
 
+  const selectedLeaveType = leaveTypes.find(type => type.code === formData.leaveType);
+  const availableBalance = formData.leaveType ? leaveBalance[formData.leaveType] || 0 : 0;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {errors.general && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>{errors.general}</AlertDescription>
+        </Alert>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="fromDate">From Date</Label>
@@ -142,14 +179,32 @@ const LeaveApplicationForm = ({ onSubmit }: LeaveApplicationFormProps) => {
           </SelectTrigger>
           <SelectContent>
             {leaveTypes.map((type) => (
-              <SelectItem key={type} value={type}>
-                {type}
+              <SelectItem key={type.code} value={type.code}>
+                <div className="flex flex-col">
+                  <span>{type.name} ({type.code})</span>
+                  <span className="text-xs text-gray-500">Balance: {leaveBalance[type.code] || 0} days</span>
+                </div>
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
         {errors.leaveType && <p className="text-sm text-red-500">{errors.leaveType}</p>}
       </div>
+
+      {selectedLeaveType && (
+        <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+          <div className="flex items-start space-x-2">
+            <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-amber-800">Leave Information:</p>
+              <p className="text-sm text-amber-700 mt-1">{selectedLeaveType.notes}</p>
+              <p className="text-sm text-amber-700">
+                <strong>Available Balance:</strong> {availableBalance} days
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="reason">Reason for Leave</Label>

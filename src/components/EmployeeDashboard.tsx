@@ -32,7 +32,7 @@ const EmployeeDashboard = ({ user, onLogout }: EmployeeDashboardProps) => {
       id: '1',
       fromDate: '2024-01-15',
       toDate: '2024-01-17',
-      leaveType: 'Annual Leave',
+      leaveType: 'EL',
       reason: 'Family function',
       status: 'approved',
       appliedDate: '2024-01-10',
@@ -42,12 +42,45 @@ const EmployeeDashboard = ({ user, onLogout }: EmployeeDashboardProps) => {
       id: '2',
       fromDate: '2024-02-20',
       toDate: '2024-02-22',
-      leaveType: 'Sick Leave',
-      reason: 'Medical treatment',
+      leaveType: 'CL',
+      reason: 'Personal work',
       status: 'pending',
       appliedDate: '2024-02-18'
     }
   ]);
+
+  // Initialize leave balance based on HVF rules
+  const initialLeaveBalance = {
+    'CL': 10,   // Casual Leave
+    'EL': 30,   // Earned Leave
+    'HPL': 20,  // Half Pay Leave
+    'SCL': 3,   // Special Casual Leave
+    'PL': 15,   // Paternity Leave
+    'ML': 180,  // Maternity Leave
+    'IL': 999,  // Injury Leave (as per rules)
+    'CCL': 730  // Child Care Leave (total service period)
+  };
+
+  // Calculate used leaves and remaining balance
+  const calculateLeaveBalance = () => {
+    const usedLeaves: Record<string, number> = {};
+    
+    leaveRequests
+      .filter(req => req.status === 'approved')
+      .forEach(req => {
+        const days = Math.ceil((new Date(req.toDate).getTime() - new Date(req.fromDate).getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        usedLeaves[req.leaveType] = (usedLeaves[req.leaveType] || 0) + days;
+      });
+
+    const remainingBalance: Record<string, number> = {};
+    Object.keys(initialLeaveBalance).forEach(leaveType => {
+      remainingBalance[leaveType] = initialLeaveBalance[leaveType] - (usedLeaves[leaveType] || 0);
+    });
+
+    return remainingBalance;
+  };
+
+  const leaveBalance = calculateLeaveBalance();
 
   const handleLeaveSubmission = (leaveData: Omit<LeaveRequest, 'id' | 'status' | 'appliedDate'>) => {
     const newLeave: LeaveRequest = {
@@ -72,10 +105,18 @@ const EmployeeDashboard = ({ user, onLogout }: EmployeeDashboardProps) => {
     }
   };
 
-  const leaveBalance = {
-    annual: 21,
-    sick: 12,
-    casual: 8
+  const getLeaveTypeName = (code: string) => {
+    const leaveTypeNames: Record<string, string> = {
+      'CL': 'Casual Leave',
+      'EL': 'Earned Leave',
+      'HPL': 'Half Pay Leave',
+      'SCL': 'Special Casual Leave',
+      'PL': 'Paternity Leave',
+      'ML': 'Maternity Leave',
+      'IL': 'Injury Leave',
+      'CCL': 'Child Care Leave'
+    };
+    return leaveTypeNames[code] || code;
   };
 
   return (
@@ -103,36 +144,47 @@ const EmployeeDashboard = ({ user, onLogout }: EmployeeDashboardProps) => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Annual Leave</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{leaveBalance.annual}</div>
-              <p className="text-xs text-muted-foreground">days remaining</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Sick Leave</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{leaveBalance.sick}</div>
-              <p className="text-xs text-muted-foreground">days remaining</p>
-            </CardContent>
-          </Card>
-          
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Casual Leave</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{leaveBalance.CL}</div>
+              <p className="text-xs text-muted-foreground">days remaining</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Earned Leave</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{leaveBalance.EL}</div>
+              <p className="text-xs text-muted-foreground">days remaining</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Half Pay Leave</CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{leaveBalance.casual}</div>
+              <div className="text-2xl font-bold">{leaveBalance.HPL}</div>
+              <p className="text-xs text-muted-foreground">days remaining</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Special CL</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{leaveBalance.SCL}</div>
               <p className="text-xs text-muted-foreground">days remaining</p>
             </CardContent>
           </Card>
@@ -157,7 +209,11 @@ const EmployeeDashboard = ({ user, onLogout }: EmployeeDashboardProps) => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <LeaveApplicationForm onSubmit={handleLeaveSubmission} />
+                <LeaveApplicationForm 
+                  onSubmit={handleLeaveSubmission}
+                  leaveBalance={leaveBalance}
+                  existingLeaves={leaveRequests}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -176,7 +232,7 @@ const EmployeeDashboard = ({ user, onLogout }: EmployeeDashboardProps) => {
                     <div key={request.id} className="border rounded-lg p-4 space-y-3">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className="font-medium">{request.leaveType}</h3>
+                          <h3 className="font-medium">{getLeaveTypeName(request.leaveType)} ({request.leaveType})</h3>
                           <p className="text-sm text-gray-600">{request.reason}</p>
                         </div>
                         <Badge className={getStatusColor(request.status)}>

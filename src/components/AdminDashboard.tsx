@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { Shield, LogOut, Users, FileText, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Shield, LogOut, FileText, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { User as UserType } from '@/pages/Index';
 import { LeaveRequest } from './EmployeeDashboard';
 import { useToast } from '@/hooks/use-toast';
@@ -22,7 +22,7 @@ const AdminDashboard = ({ user, onLogout }: AdminDashboardProps) => {
       id: '1',
       fromDate: '2024-01-15',
       toDate: '2024-01-17',
-      leaveType: 'Annual Leave',
+      leaveType: 'EL',
       reason: 'Family function',
       status: 'pending',
       appliedDate: '2024-01-10'
@@ -31,8 +31,8 @@ const AdminDashboard = ({ user, onLogout }: AdminDashboardProps) => {
       id: '2',
       fromDate: '2024-02-20',
       toDate: '2024-02-22',
-      leaveType: 'Sick Leave',
-      reason: 'Medical treatment',
+      leaveType: 'CL',
+      reason: 'Personal work',
       status: 'pending',
       appliedDate: '2024-02-18'
     },
@@ -40,15 +40,29 @@ const AdminDashboard = ({ user, onLogout }: AdminDashboardProps) => {
       id: '3',
       fromDate: '2024-01-05',
       toDate: '2024-01-07',
-      leaveType: 'Casual Leave',
-      reason: 'Personal work',
+      leaveType: 'SCL',
+      reason: 'Examination',
       status: 'approved',
       appliedDate: '2024-01-01',
-      adminRemarks: 'Approved for personal work'
+      adminRemarks: 'Approved for examination purpose'
     }
   ]);
 
   const [remarks, setRemarks] = useState<Record<string, string>>({});
+
+  const getLeaveTypeName = (code: string) => {
+    const leaveTypeNames: Record<string, string> = {
+      'CL': 'Casual Leave',
+      'EL': 'Earned Leave',
+      'HPL': 'Half Pay Leave',
+      'SCL': 'Special Casual Leave',
+      'PL': 'Paternity Leave',
+      'ML': 'Maternity Leave',
+      '**': 'Injury Leave',
+      'CCL': 'Child Care Leave'
+    };
+    return leaveTypeNames[code] || code;
+  };
 
   const handleLeaveAction = (requestId: string, action: 'approved' | 'rejected') => {
     setLeaveRequests(prev => 
@@ -178,7 +192,7 @@ const AdminDashboard = ({ user, onLogout }: AdminDashboardProps) => {
                       <div key={request.id} className="border rounded-lg p-6 space-y-4">
                         <div className="flex justify-between items-start">
                           <div className="space-y-2">
-                            <h3 className="font-semibold text-lg">{request.leaveType}</h3>
+                            <h3 className="font-semibold text-lg">{getLeaveTypeName(request.leaveType)} ({request.leaveType})</h3>
                             <p className="text-gray-600">{request.reason}</p>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                               <div>
@@ -250,7 +264,7 @@ const AdminDashboard = ({ user, onLogout }: AdminDashboardProps) => {
                     <div key={request.id} className="border rounded-lg p-4 space-y-3">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className="font-medium">{request.leaveType}</h3>
+                          <h3 className="font-medium">{getLeaveTypeName(request.leaveType)} ({request.leaveType})</h3>
                           <p className="text-sm text-gray-600">{request.reason}</p>
                         </div>
                         <Badge className={getStatusColor(request.status)}>

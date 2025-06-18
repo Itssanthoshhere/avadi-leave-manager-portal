@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Building2, Lock, User } from 'lucide-react';
+import { Lock, User } from 'lucide-react';
 
 interface LoginFormProps {
   onLogin: (pno: string, password: string) => Promise<void>;
@@ -39,15 +39,19 @@ const LoginForm = ({ onLogin, isLoading }: LoginFormProps) => {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <div className="bg-blue-600 p-3 rounded-full">
-              <Building2 className="h-8 w-8 text-white" />
+            <div className="bg-white p-4 rounded-full shadow-lg">
+              <img 
+                src="/lovable-uploads/b91d46d5-0834-4662-8443-aa93d3378e6c.png" 
+                alt="Heavy Vehicles Factory Logo" 
+                className="h-16 w-16 object-contain"
+              />
             </div>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">HVF e-Leave Portal</h1>
           <p className="text-gray-600">Heavy Vehicles Factory, Avadi</p>
           <div className="text-sm text-gray-500 mt-2">
             <div>हेवी व्हीकल्स फैक्ट्री, अवाडी</div>
-            <div>ப·வீ வாகன தொழிற்சாலை, ஆவடி</div>
+            <div>கனரக வாகன தொழிற்சாலை, ஆவடி</div>
           </div>
         </div>
 
