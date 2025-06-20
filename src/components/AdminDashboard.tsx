@@ -1,11 +1,12 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, Calendar, FileText, CheckCircle, XCircle, Clock, ClipboardList } from 'lucide-react';
-import { User } from '@/pages/Index';
+import { Textarea } from '@/components/ui/textarea';
+import { Users, Calendar, FileText, CheckCircle, XCircle, Clock, ClipboardList, Shield, LogOut } from 'lucide-react';
+import { User, LeaveRequest } from '@/pages/Index';
 import TaskManager from './TaskManager';
 import { useToast } from '@/hooks/use-toast';
 
