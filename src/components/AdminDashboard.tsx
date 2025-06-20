@@ -1,13 +1,14 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Users, Calendar, FileText, CheckCircle, XCircle, Clock, ClipboardList, Shield, LogOut } from 'lucide-react';
-import { User, LeaveRequest } from '@/pages/Index';
+import { User, LeaveRequest, Employee } from '@/pages/Index';
 import TaskManager from './TaskManager';
+import EmployeeForm from './EmployeeForm';
 import { useToast } from '@/hooks/use-toast';
 
 interface AdminDashboardProps {
@@ -18,6 +19,7 @@ interface AdminDashboardProps {
 const AdminDashboard = ({ user, onLogout }: AdminDashboardProps) => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
+  const [employees, setEmployees] = useState<Employee[]>(user.employees || []);
 
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([
     {
@@ -81,6 +83,20 @@ const AdminDashboard = ({ user, onLogout }: AdminDashboardProps) => {
     });
     
     setRemarks(prev => ({ ...prev, [requestId]: '' }));
+  };
+
+  const handleAddEmployee = (employeeData: Omit<Employee, 'id'>) => {
+    const newEmployee: Employee = {
+      ...employeeData,
+      id: `emp_${Date.now()}` // Simple ID generation
+    };
+    
+    setEmployees(prev => [...prev, newEmployee]);
+    
+    toast({
+      title: "Employee Added",
+      description: `${employeeData.name} has been added successfully.`,
+    });
   };
 
   const getStatusColor = (status: LeaveRequest['status']) => {
@@ -287,25 +303,72 @@ const AdminDashboard = ({ user, onLogout }: AdminDashboardProps) => {
 
           <TabsContent value="employees">
             <Card>
-              <CardHeader>
-                <CardTitle>Employee Management</CardTitle>
-                <CardDescription>
-                  Manage employee information
-                </CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Employee Management</CardTitle>
+                  <CardDescription>
+                    Manage employee information and add new employees
+                  </CardDescription>
+                </div>
+                <EmployeeForm onAddEmployee={handleAddEmployee} />
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  <div>
-                    <h3 className="font-medium">Total Employees</h3>
-                    <p className="text-sm text-gray-600">{user.employees.length}</p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h3 className="font-medium text-blue-900">Total Employees</h3>
+                      <p className="text-2xl font-bold text-blue-700">{employees.length}</p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <h3 className="font-medium text-green-900">Active Employees</h3>
+                      <p className="text-2xl font-bold text-green-700">
+                        {employees.filter(emp => emp.status === 'active').length}
+                      </p>
+                    </div>
+                    <div className="bg-red-50 p-4 rounded-lg">
+                      <h3 className="font-medium text-red-900">Inactive Employees</h3>
+                      <p className="text-2xl font-bold text-red-700">
+                        {employees.filter(emp => emp.status === 'inactive').length}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-medium">Active Employees</h3>
-                    <p className="text-sm text-gray-600">{user.employees.filter(emp => emp.status === 'active').length}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Inactive Employees</h3>
-                    <p className="text-sm text-gray-600">{user.employees.filter(emp => emp.status === 'inactive').length}</p>
+
+                  <div className="border rounded-lg">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Employee ID</TableHead>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {employees.map((employee) => (
+                          <TableRow key={employee.id}>
+                            <TableCell className="font-medium">{employee.id}</TableCell>
+                            <TableCell>{employee.name}</TableCell>
+                            <TableCell>
+                              <Badge 
+                                className={
+                                  employee.status === 'active' 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-red-100 text-red-800'
+                                }
+                              >
+                                {employee.status}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        {employees.length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={3} className="text-center py-8 text-gray-500">
+                              No employees found. Add your first employee to get started.
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
                   </div>
                 </div>
               </CardContent>
