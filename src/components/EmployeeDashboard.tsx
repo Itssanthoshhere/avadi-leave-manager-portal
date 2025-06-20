@@ -3,11 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, FileText, CheckCircle, XCircle, Clock, User as UserIcon, ClipboardList, Plus, LogOut } from 'lucide-react';
+import { Calendar, FileText, CheckCircle, XCircle, Clock, User as UserIcon, ClipboardList, Plus, LogOut, Info } from 'lucide-react';
 import LeaveApplicationForm from './LeaveApplicationForm';
 import { User } from '@/pages/Index';
 import TaskManager from './TaskManager';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface EmployeeDashboardProps {
   user: User;
@@ -33,22 +34,22 @@ const EmployeeDashboard = ({ user, onLogout }: EmployeeDashboardProps) => {
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([
     {
       id: '1',
-      fromDate: '2024-01-15',
-      toDate: '2024-01-17',
+      fromDate: '2025-01-15',
+      toDate: '2025-01-17',
       leaveType: 'EL',
       reason: 'Family function',
       status: 'approved',
-      appliedDate: '2024-01-10',
+      appliedDate: '2025-01-10',
       adminRemarks: 'Approved for family function'
     },
     {
       id: '2',
-      fromDate: '2024-02-20',
-      toDate: '2024-02-22',
+      fromDate: '2025-02-20',
+      toDate: '2025-02-22',
       leaveType: 'CL',
       reason: 'Personal work',
       status: 'pending',
-      appliedDate: '2024-02-18'
+      appliedDate: '2025-02-18'
     }
   ]);
 
@@ -146,6 +147,17 @@ const EmployeeDashboard = ({ user, onLogout }: EmployeeDashboardProps) => {
       </div>
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        {/* Leave Balance Summary */}
+        <div className="mb-6">
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Total Leave Balance Summary:</strong> 
+              CL: {leaveBalance.CL} days | EL: {leaveBalance.EL} days | HPL: {leaveBalance.HPL} days | SCL: {leaveBalance.SCL} days
+            </AlertDescription>
+          </Alert>
+        </div>
+
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <Card>

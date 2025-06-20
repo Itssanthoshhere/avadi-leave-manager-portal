@@ -24,30 +24,30 @@ const AdminDashboard = ({ user, onLogout }: AdminDashboardProps) => {
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([
     {
       id: '1',
-      fromDate: '2024-01-15',
-      toDate: '2024-01-17',
+      fromDate: '2025-01-15',
+      toDate: '2025-01-17',
       leaveType: 'EL',
       reason: 'Family function',
       status: 'pending',
-      appliedDate: '2024-01-10'
+      appliedDate: '2025-01-10'
     },
     {
       id: '2',
-      fromDate: '2024-02-20',
-      toDate: '2024-02-22',
+      fromDate: '2025-02-20',
+      toDate: '2025-02-22',
       leaveType: 'CL',
       reason: 'Personal work',
       status: 'pending',
-      appliedDate: '2024-02-18'
+      appliedDate: '2025-02-18'
     },
     {
       id: '3',
-      fromDate: '2024-01-05',
-      toDate: '2024-01-07',
+      fromDate: '2025-01-05',
+      toDate: '2025-01-07',
       leaveType: 'SCL',
       reason: 'Examination',
       status: 'approved',
-      appliedDate: '2024-01-01',
+      appliedDate: '2025-01-01',
       adminRemarks: 'Approved for examination purpose'
     }
   ]);
