@@ -1,22 +1,23 @@
-
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
-import { Shield, LogOut, FileText, Clock, CheckCircle, XCircle } from 'lucide-react';
-import { User as UserType } from '@/pages/Index';
-import { LeaveRequest } from './EmployeeDashboard';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Users, Calendar, FileText, CheckCircle, XCircle, Clock, ClipboardList } from 'lucide-react';
+import { User } from '@/pages/Index';
+import TaskManager from './TaskManager';
 import { useToast } from '@/hooks/use-toast';
 
 interface AdminDashboardProps {
-  user: UserType;
+  user: User;
   onLogout: () => void;
 }
 
 const AdminDashboard = ({ user, onLogout }: AdminDashboardProps) => {
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState('overview');
+
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([
     {
       id: '1',
@@ -122,7 +123,7 @@ const AdminDashboard = ({ user, onLogout }: AdminDashboardProps) => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
@@ -167,16 +168,49 @@ const AdminDashboard = ({ user, onLogout }: AdminDashboardProps) => {
         </div>
 
         {/* Main Content */}
-        <Tabs defaultValue="pending" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="pending">Pending Requests ({stats.pending})</TabsTrigger>
-            <TabsTrigger value="processed">Processed Requests</TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="leaves">Leave Management</TabsTrigger>
+            <TabsTrigger value="employees">Employee Management</TabsTrigger>
+            <TabsTrigger value="tasks">Task Management</TabsTrigger>
           </TabsList>
-          
-          <TabsContent value="pending">
+
+          <TabsContent value="overview">
             <Card>
               <CardHeader>
-                <CardTitle>Pending Leave Requests</CardTitle>
+                <CardTitle>Overview</CardTitle>
+                <CardDescription>
+                  Overview of the admin dashboard
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="font-medium">Total Requests</h3>
+                    <p className="text-sm text-gray-600">{stats.total}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Pending</h3>
+                    <p className="text-sm text-gray-600">{stats.pending}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Approved</h3>
+                    <p className="text-sm text-gray-600">{stats.approved}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Rejected</h3>
+                    <p className="text-sm text-gray-600">{stats.rejected}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="leaves">
+            <Card>
+              <CardHeader>
+                <CardTitle>Leave Management</CardTitle>
                 <CardDescription>
                   Review and approve/reject employee leave requests
                 </CardDescription>
@@ -249,62 +283,39 @@ const AdminDashboard = ({ user, onLogout }: AdminDashboardProps) => {
               </CardContent>
             </Card>
           </TabsContent>
-          
-          <TabsContent value="processed">
+
+          <TabsContent value="employees">
             <Card>
               <CardHeader>
-                <CardTitle>Processed Leave Requests</CardTitle>
+                <CardTitle>Employee Management</CardTitle>
                 <CardDescription>
-                  View all approved and rejected leave requests
+                  Manage employee information
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {processedRequests.map((request) => (
-                    <div key={request.id} className="border rounded-lg p-4 space-y-3">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-medium">{getLeaveTypeName(request.leaveType)} ({request.leaveType})</h3>
-                          <p className="text-sm text-gray-600">{request.reason}</p>
-                        </div>
-                        <Badge className={getStatusColor(request.status)}>
-                          {request.status}
-                        </Badge>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <span className="font-medium">From:</span>
-                          <p>{new Date(request.fromDate).toLocaleDateString()}</p>
-                        </div>
-                        <div>
-                          <span className="font-medium">To:</span>
-                          <p>{new Date(request.toDate).toLocaleDateString()}</p>
-                        </div>
-                        <div>
-                          <span className="font-medium">Applied:</span>
-                          <p>{new Date(request.appliedDate).toLocaleDateString()}</p>
-                        </div>
-                        <div>
-                          <span className="font-medium">Duration:</span>
-                          <p>{Math.ceil((new Date(request.toDate).getTime() - new Date(request.fromDate).getTime()) / (1000 * 60 * 60 * 24)) + 1} days</p>
-                        </div>
-                      </div>
-                      
-                      {request.adminRemarks && (
-                        <div className="bg-gray-50 p-3 rounded">
-                          <span className="font-medium text-sm">Admin Remarks:</span>
-                          <p className="text-sm mt-1">{request.adminRemarks}</p>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="font-medium">Total Employees</h3>
+                    <p className="text-sm text-gray-600">{user.employees.length}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Active Employees</h3>
+                    <p className="text-sm text-gray-600">{user.employees.filter(emp => emp.status === 'active').length}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Inactive Employees</h3>
+                    <p className="text-sm text-gray-600">{user.employees.filter(emp => emp.status === 'inactive').length}</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="tasks">
+            <TaskManager user={user} />
+          </TabsContent>
         </Tabs>
-      </div>
+      </main>
     </div>
   );
 };

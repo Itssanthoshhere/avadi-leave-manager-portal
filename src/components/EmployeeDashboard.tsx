@@ -1,16 +1,15 @@
-
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, Clock, FileText, LogOut, Plus, User } from 'lucide-react';
-import { User as UserType } from '@/pages/Index';
+import { Badge } from '@/components/ui/badge';
+import { Calendar, FileText, CheckCircle, XCircle, Clock, User as UserIcon, ClipboardList } from 'lucide-react';
 import LeaveApplicationForm from './LeaveApplicationForm';
-import { useToast } from '@/hooks/use-toast';
+import { User } from '@/pages/Index';
+import TaskManager from './TaskManager';
 
 interface EmployeeDashboardProps {
-  user: UserType;
+  user: User;
   onLogout: () => void;
 }
 
@@ -26,6 +25,9 @@ export interface LeaveRequest {
 }
 
 const EmployeeDashboard = ({ user, onLogout }: EmployeeDashboardProps) => {
+  const [activeTab, setActiveTab] = useState('overview');
+  const [showLeaveForm, setShowLeaveForm] = useState(false);
+
   const { toast } = useToast();
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([
     {
@@ -127,7 +129,7 @@ const EmployeeDashboard = ({ user, onLogout }: EmployeeDashboardProps) => {
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
               <div className="bg-blue-600 p-2 rounded-lg">
-                <User className="h-6 w-6 text-white" />
+                <UserIcon className="h-6 w-6 text-white" />
               </div>
               <div>
                 <h1 className="text-xl font-semibold text-gray-900">Employee Dashboard</h1>
@@ -142,7 +144,7 @@ const EmployeeDashboard = ({ user, onLogout }: EmployeeDashboardProps) => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <Card>
@@ -191,11 +193,47 @@ const EmployeeDashboard = ({ user, onLogout }: EmployeeDashboardProps) => {
         </div>
 
         {/* Main Content */}
-        <Tabs defaultValue="apply" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="apply">Apply for Leave</TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="apply">Apply Leave</TabsTrigger>
             <TabsTrigger value="history">Leave History</TabsTrigger>
+            <TabsTrigger value="tasks">My Tasks</TabsTrigger>
           </TabsList>
+          
+          <TabsContent value="overview">
+            <Card>
+              <CardHeader>
+                <CardTitle>Overview</CardTitle>
+                <CardDescription>
+                  View your leave balance and recent leave applications
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="font-medium">Leave Balance</h3>
+                      <p className="text-sm text-gray-600">Check your remaining leave days</p>
+                    </div>
+                    <Badge className="bg-green-100 text-green-800">
+                      {leaveBalance.CL} days
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="font-medium">Recent Leave Applications</h3>
+                      <p className="text-sm text-gray-600">View your recent leave requests</p>
+                    </div>
+                    <Badge className="bg-green-100 text-green-800">
+                      2 applications
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
           
           <TabsContent value="apply">
             <Card>
@@ -271,8 +309,12 @@ const EmployeeDashboard = ({ user, onLogout }: EmployeeDashboardProps) => {
               </CardContent>
             </Card>
           </TabsContent>
+          
+          <TabsContent value="tasks">
+            <TaskManager user={user} />
+          </TabsContent>
         </Tabs>
-      </div>
+      </main>
     </div>
   );
 };
